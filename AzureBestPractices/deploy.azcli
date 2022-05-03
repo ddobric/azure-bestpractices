@@ -1,0 +1,58 @@
+Write-Output "------------------------------------"
+Write-Output "     create batch service account   "
+Write-Output "------------------------------------"
+
+$rg="RG-AZBEST-PRACTICES"
+
+# To get all loacations use following command
+# az account list-locations -o table
+
+# Can use JMESPath expressions to llokup the location
+# https://docs.microsoft.com/en-us/cli/azure/query-azure-cli?tabs=concepts%2Cbash
+
+# If you do not remember the location name as I never re,member, try this:
+# az account list-locations -o table --query "[? contains(name,'ger')]"
+$location="germanywestcentral"
+
+# Set the name of the storage account
+$acc="azbestpractices"
+
+
+
+# Create the resource group
+az group create -n $rg -l $location
+
+Write-Output "------------------------------------"
+Write-Output "     create the storage account   "
+Write-Output "------------------------------------"
+
+# Creates the storage account
+az storage account create --name $acc -g $rg --access-tier Cool --allow-blob-public-access false  --https-only true --kind StorageV2 --sku Standard_LRS
+
+# Get the account primary key
+$key = az storage account keys list -n $acc -o json --query "[0].value"
+
+# Create Required Blob Containers
+az storage container create -n democontainer --public-access off --account-name $acc --account-key $key
+
+
+# Create the share
+az storage share create --name "dataexchange" --account-name $acc --account-key $key
+
+az storage share create --name "executable" --account-name $acc --account-key $key
+
+
+# Create some folder in the share.
+az storage directory create --account-name $acc --name '@demo' --share-name $share  --account-key $key
+
+
+
+Write-Output "------------------------------------"
+Write-Output "     create batch service account   "
+Write-Output "------------------------------------"
+
+# Set the name of the Azure Batcg Service Account to be created.
+$batchAccName = 'azbestpracticesbatch'
+
+# Creates the Azure Batch Service and Associate it with the storage account.
+az batch account create -g $rg -l $location -n $batchAccName --storage-account $acc 

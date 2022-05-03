@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MyJob": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
