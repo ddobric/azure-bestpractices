@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyJob", "MyJob\MyJob.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBalancer", "WebBalancer\WebBalancer.csproj", "{8302D28D-97B7-498A-889D-9D4AAB4402C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{BEC18AE4-7923-469B-9A66-BA368DA944B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8302D28D-97B7-498A-889D-9D4AAB4402C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8302D28D-97B7-498A-889D-9D4AAB4402C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8302D28D-97B7-498A-889D-9D4AAB4402C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEC18AE4-7923-469B-9A66-BA368DA944B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEC18AE4-7923-469B-9A66-BA368DA944B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEC18AE4-7923-469B-9A66-BA368DA944B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEC18AE4-7923-469B-9A66-BA368DA944B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

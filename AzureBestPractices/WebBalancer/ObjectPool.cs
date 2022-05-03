@@ -1,4 +1,4 @@
-﻿namespace WebBalancer
+﻿namespace Daenet.WebBalancer
 {
     public class ObjectPool<THeavyObject> where THeavyObject : class
     {
@@ -26,9 +26,8 @@
             return localModels;
         }
 
-        public THeavyObject Get(out bool isLoading, out bool isBusy)
+        public THeavyObject Get(out bool isBusy)
         {
-            isLoading = false;
             isBusy = false;
 
             THeavyObject predictionEngine = null;

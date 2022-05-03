@@ -1,4 +1,4 @@
-﻿namespace WebBalancer
+﻿namespace Daenet.WebBalancer
 {
     public class HeavyObject
     {
