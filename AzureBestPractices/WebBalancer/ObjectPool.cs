@@ -6,7 +6,7 @@
     /// <typeparam name="THeavyObject"></typeparam>
     public class ObjectPool<THeavyObject> where THeavyObject : class
     {
-        private List<THeavyObject> objects;
+        private static List<THeavyObject> objects;
 
         public ObjectPool()
         {
@@ -18,22 +18,16 @@
             objects = objectList;
         }
 
-        private List<THeavyObject> GetObjectsInterlockedWithQueue(bool waitOnFreeObject = true)
+        private List<THeavyObject> GetObjectsInterlockedWithQueue()
         {
-            int maxRetries = 20;
+            List<THeavyObject> localModels;
 
-            List<THeavyObject> localModels = null;
-
-            while (maxRetries-- > 0)
+            while (true)
             {
                 localModels = Interlocked.Exchange<List<THeavyObject>>(ref objects, null);
 
-                // If waitOnFreeObject is set on FALSE, we do not queue requests.
-                if (waitOnFreeObject == false)
-                    break;
-
                 // If waitOnFreeObject is set on TRUE, we queue requests and wait on the free object.
-                if (localModels != null && localModels.Count > 0)
+                if (localModels != null)
                     break;
 
                 Thread.Sleep(100);
@@ -42,8 +36,8 @@
             return localModels;
         }
 
-        internal bool IsInitialized {get;set;}
-        
+        internal bool IsInitialized { get; set; }
+
         internal void LoadObjects(List<THeavyObject> objectList)
         {
             objects = objectList;
@@ -59,26 +53,43 @@
         {
             isBusy = false;
 
-            THeavyObject predictionEngine = null;
+            int retries = 20;
 
-            List<THeavyObject> localModels;
+            THeavyObject objectInstance = null;
 
-            // This waits to access the list of engines in the pool.
-            localModels = GetObjectsInterlockedWithQueue(waitOnFreeObject);
+            List<THeavyObject> localModels = null;
 
-            if (localModels != null && localModels.Count > 0)
+            while (retries-- > 0)
             {
-                predictionEngine = localModels[localModels.Count - 1];
-                localModels.RemoveAt(localModels.Count - 1);
+                // This waits to access the list of engines in the pool.
+                localModels = GetObjectsInterlockedWithQueue();
+
+                if (localModels.Count > 0)
+                {
+                    objectInstance = localModels[localModels.Count - 1];
+                    localModels.RemoveAt(localModels.Count - 1);
+                    Interlocked.Exchange<List<THeavyObject>>(ref objects, localModels);
+                    break;
+                }
+                else
+                    Interlocked.Exchange<List<THeavyObject>>(ref objects, localModels);
+
+                if (waitOnFreeObject == false)
+                    break;
+
+                Thread.Sleep(500);
+            }
+
+            if (objectInstance != null)
+            {
+                isBusy = false;
             }
             else
             {
                 isBusy = true;
             }
 
-            Interlocked.Exchange<List<THeavyObject>>(ref objects, localModels);
-
-            return predictionEngine;
+            return objectInstance;
         }
 
 

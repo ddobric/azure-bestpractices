@@ -83,7 +83,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        [DataRow(1000, 1, 3, "doit")]
+        [DataRow(100, 1, 3, "doit")]
         ///<summary>
         /// Execute requests in parallel without request queueing optimization in the object pool.
         ///</summary>
@@ -93,7 +93,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        [DataRow(1000, 1, 3, "doit")]
+        [DataRow(100, 1, 3, "doit")]
         ///<summary>
         /// Execute requests in parallel WITH request queueing optimization in the object pool.
         ///</summary>
@@ -226,10 +226,7 @@ namespace UnitTests
                 {
                     timer.Stop();
                     executedTimes.Add(timer.Elapsed.TotalSeconds);
-
                     CountServerErrCalls();
-                    TestContext.WriteLine("\"Error from client site\"");
-
                 }
                 client.Dispose();
                 await Task.Delay(100);
