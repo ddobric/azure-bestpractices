@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBalancer", "WebBalancer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{BEC18AE4-7923-469B-9A66-BA368DA944B7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ContainerBatch", "ContainerBatch", "{059E693B-091A-4178-9011-4F6A8A23F7CA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Objectpooling", "Objectpooling", "{4CBFCCC1-3101-4B89-A190-38A682D453CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +40,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{831DD286-3D97-4F53-A5EA-F47EFE88ED76} = {059E693B-091A-4178-9011-4F6A8A23F7CA}
+		{A125F7B3-4577-4957-8DA5-60987E5D010A} = {059E693B-091A-4178-9011-4F6A8A23F7CA}
+		{8302D28D-97B7-498A-889D-9D4AAB4402C5} = {4CBFCCC1-3101-4B89-A190-38A682D453CC}
+		{BEC18AE4-7923-469B-9A66-BA368DA944B7} = {4CBFCCC1-3101-4B89-A190-38A682D453CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D14B9230-D46B-49BC-9F3A-BF7AFC2D46B4}

@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddDebug();
 
+builder.Logging.AddConsole();
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
