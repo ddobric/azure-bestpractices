@@ -33,8 +33,9 @@ namespace Daenet.AzureBestPractices.MyJob
 
         private static void TraceUsage()
         {
-            var proc = Process.GetCurrentProcess();
-            Console.WriteLine($"PrivateMemorySize64:\t{((double)proc.PrivateMemorySize64 /1024 / 1024/1024).ToString("#.##")}");
+
+
+            Console.WriteLine($"PrivateMemorySize64:\t{((double)Process.GetCurrentProcess().PrivateMemorySize64 /1024 / 1024/1024).ToString("#.##")}");
         }
 
         private static List<string> list = new List<string>();

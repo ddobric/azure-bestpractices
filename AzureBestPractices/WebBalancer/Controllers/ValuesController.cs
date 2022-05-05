@@ -18,7 +18,7 @@ namespace Daenet.WebBalancer
 
             pool = objectPool;
             
-            logger?.LogInformation($"POOL: {pool.GetHashCode()}");
+            //logger?.LogInformation($"POOL: {pool.GetHashCode()}");
         }
 
         private void EnsurePoolLoaded()

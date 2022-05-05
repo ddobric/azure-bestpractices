@@ -642,7 +642,7 @@ namespace Daenet.AzureBestPractices
 
             pool.StartTask = new StartTask()
             {
-                //CommandLine = @"cmd /c ""net use L: \\herthboss.file.core.windows.net\vcdtest /u:herthboss FphBnBHjZajG/acOk7JWQGUaAFX2EhSX8P9bWC4jTRpl/EpkhcNLhb4aGJHQjPnW9+6yypjy6NlViSl74lUdkg== /persistent:yes""",
+                
                 CommandLine = @"cmd /c ""wmic logicaldisk get caption""",
                 //ResourceFiles = resourceFiles
             };
