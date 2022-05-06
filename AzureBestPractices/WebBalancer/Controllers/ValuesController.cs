@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
+
 namespace Daenet.WebBalancer
 {
     [Route("api/[controller]")]
@@ -53,7 +54,13 @@ namespace Daenet.WebBalancer
 
                 res = "bussy";
 
-                throw new Exception("bussy");
+                var resp = new HttpResponseMessage(System.Net.HttpStatusCode.Gone)
+                {
+                    Content = new StringContent("bussy"),
+                    ReasonPhrase = "bussy"
+                };
+
+                throw new System.Web.Http.HttpResponseException(resp);
             }
             else
             {

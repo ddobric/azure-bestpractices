@@ -11,7 +11,7 @@ namespace Daenet.WebBalancer
         {
             this.id = id;
 
-            AllocateMemory(1);
+            //AllocateMemory(1);
         }
 
         #region RAM Allocation
