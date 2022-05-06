@@ -125,7 +125,7 @@ namespace UnitTests
         private void ExecuteLoadTest(int concurrentCalls, int numOfRequestsInSequence, int objectsToConsume, string operationToExec, bool waitOnFreeObject)
         {
             var baseUrl = "https://localhost:7232";
-            baseUrl = "https://webbalancer.azurewebsites.net";
+            //baseUrl = "https://webbalancer.azurewebsites.net";
 
             List<string> tenants = new List<string>();
             List<string> scopes = new List<string>();
