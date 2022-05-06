@@ -6,7 +6,10 @@ builder.Logging.AddDebug();
 
 builder.Logging.AddConsole();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<HttpResponseExceptionFilter>();
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
