@@ -77,7 +77,7 @@
                 if (waitOnFreeObject == false)
                     break;
 
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
 
             if (objectInstance != null)

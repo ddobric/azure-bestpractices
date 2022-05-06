@@ -35,7 +35,7 @@ namespace Daenet.WebBalancer
         }
 
         [HttpGet("doit/{delay}/{waitOnFreeObject}")]
-        public async Task<string> DoIt(int? delay = 10000, bool waitOnFreeObject = true)
+        public async Task<IActionResult> DoIt(int? delay = 10000, bool waitOnFreeObject = true)
         {
             logger?.LogInformation("DoIt entered.");
 
@@ -53,7 +53,7 @@ namespace Daenet.WebBalancer
 
                 res = "bussy";
 
-                throw new Exception("bussy");
+                return Problem(res, statusCode: 501);
             }
             else
             {
@@ -64,7 +64,7 @@ namespace Daenet.WebBalancer
                 logger?.LogInformation("DoIt completed.");
             }
 
-            return $"{DateTime.Now.ToString()} - {res}";
+            return Ok(res);
         }
 
         /// <summary>

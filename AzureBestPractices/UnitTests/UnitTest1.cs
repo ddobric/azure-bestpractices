@@ -125,7 +125,7 @@ namespace UnitTests
         private void ExecuteLoadTest(int concurrentCalls, int numOfRequestsInSequence, int objectsToConsume, string operationToExec, bool waitOnFreeObject)
         {
             var baseUrl = "https://localhost:7232";
-           baseUrl = "https://webbalancer.azurewebsites.net";
+            baseUrl = "https://webbalancer.azurewebsites.net";
 
             List<string> tenants = new List<string>();
             List<string> scopes = new List<string>();
@@ -195,8 +195,6 @@ namespace UnitTests
                     
                     timer.Stop();
 
-                    executedTimes.Add(timer.Elapsed.TotalSeconds);
-
                     if (response.IsSuccessStatusCode)
                     {
                         var result = response.Content.ReadAsStringAsync().Result;
@@ -220,12 +218,16 @@ namespace UnitTests
                         {
                             CountServerErrCalls();
                         }
+                        TestContext.WriteLine(response.Content.ReadAsStringAsync().Result);
                     }
+
+                    executedTimes.Add(timer.Elapsed.TotalSeconds);
                 }
                 catch (Exception ex)
                 {
                     timer.Stop();
                     executedTimes.Add(timer.Elapsed.TotalSeconds);
+                    TestContext.WriteLine(ex.Message);
                     CountServerErrCalls();
                 }
                 client.Dispose();
