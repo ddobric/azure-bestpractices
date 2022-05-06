@@ -42,7 +42,9 @@ namespace Daenet.WebBalancer
 
         public async Task<string> Run(int delay)
         {
-            await Task.Delay(delay);
+            var rand = new Random();
+            var time = rand.Next(500, delay);
+            await Task.Delay(time);
 
             return $"({id}) - Hello :)";
         }
