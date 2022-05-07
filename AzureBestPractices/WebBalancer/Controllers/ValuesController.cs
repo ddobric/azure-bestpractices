@@ -56,8 +56,8 @@ namespace Daenet.WebBalancer
 
                 var resp = new HttpResponseMessage(System.Net.HttpStatusCode.Gone)
                 {
-                    Content = new StringContent("bussy"),
-                    ReasonPhrase = "bussy"
+                    Content = new StringContent(res),
+                    ReasonPhrase = res
                 };
 
                 throw new System.Web.Http.HttpResponseException(resp);
