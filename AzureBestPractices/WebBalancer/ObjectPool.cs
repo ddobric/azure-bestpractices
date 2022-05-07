@@ -53,7 +53,7 @@
         {
             isBusy = false;
 
-            int retries = 30;
+            int retries = 700;
 
             THeavyObject objectInstance = null;
 
@@ -77,7 +77,7 @@
                 if (waitOnFreeObject == false)
                     break;
 
-                Thread.Sleep(500);
+                Thread.Sleep(100);
             }
 
             if (objectInstance != null)
