@@ -103,7 +103,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        [DataRow(1000, 1, 3, "ping")]
+        [DataRow(100, 1, 3, "ping")]
         ///<summary>
         /// This test parallelly sends requests.
         ///</summary>
@@ -113,7 +113,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        [DataRow(2, 1, 3, "ConsumeBigObject")]
+        [DataRow(100, 1, 3, "ConsumeBigObject")]
         ///<summary>
         /// This test parallelly sends requests.
         ///</summary>
@@ -125,7 +125,7 @@ namespace UnitTests
         private void ExecuteLoadTest(int concurrentCalls, int numOfRequestsInSequence, int objectsToConsume, string operationToExec, bool waitOnFreeObject)
         {
             var baseUrl = "https://localhost:7232";
-            //baseUrl = "https://webbalancer.azurewebsites.net";
+            baseUrl = "https://webbalancer.azurewebsites.net";
 
             List<string> tenants = new List<string>();
             List<string> scopes = new List<string>();
@@ -218,7 +218,7 @@ namespace UnitTests
                         {
                             CountServerErrCalls();
                         }
-                        TestContext.WriteLine(response.Content.ReadAsStringAsync().Result);
+                        //TestContext.WriteLine(response.Content.ReadAsStringAsync().Result);
                     }
 
                     executedTimes.Add(timer.Elapsed.TotalSeconds);

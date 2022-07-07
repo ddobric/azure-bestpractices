@@ -56,3 +56,22 @@ $batchAccName = 'azbestpracticesbatch'
 
 # Creates the Azure Batch Service and Associate it with the storage account.
 az batch account create -g $rg -l $location -n $batchAccName --storage-account $acc 
+
+
+Write-Output "---------------------------------------------"
+Write-Output "     create cosmosdb with failover region    "
+Write-Output "---------------------------------------------"
+
+
+$rg = "RG-CPDM-HBTEST"
+$acc ="cosohimzotst"
+$failoverLocation1 = "westeurope"
+$region = "northeurope"
+
+# With Continious Backup
+az cosmosdb create --subscription 'df3aae2c-ab27-4687-b252-8c3157a529e7' --resource-group $rg --name $acc --kind MongoDB --capabilities EnableAggregationPipeline --default-consistency-level "Eventual" --backup-policy-type Continuous  --backup-redundancy Geo --backup-policy-type Continuous --locations regionName=$region failoverPriority=0 isZoneRedundant=False --locations regionName=$failoverLocation1 failoverPriority=1 isZoneRedundant=False
+
+# With periodical backup
+az cosmosdb create --subscription 'df3aae2c-ab27-4687-b252-8c3157a529e7' --resource-group $rg --name $acc --kind MongoDB --capabilities EnableAggregationPipeline --default-consistency-level "Eventual" --backup-policy-type Continuous  --backup-redundancy Geo --backup-policy-type Continuous --locations regionName=$region failoverPriority=0 isZoneRedundant=False --locations regionName=$failoverLocation1 failoverPriority=1 isZoneRedundant=False
+
+az cosmosdb update --name $acc --resource-group $rg --locations regionName=$region failoverPriority=0 isZoneRedundant=False --locations regionName=$failoverLocation1 failoverPriority=1 isZoneRedundant=False 

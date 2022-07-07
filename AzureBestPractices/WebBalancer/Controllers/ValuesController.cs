@@ -100,8 +100,14 @@ namespace Daenet.WebBalancer
         }
 
 
+        /// <summary>
+        /// Demonstrates a lightweight operation.
+        /// </summary>
+        /// <param name="delay"></param>
+        /// <param name="notUsed"></param>
+        /// <returns></returns>
         [HttpGet("ping/{delay}/{notUsed}")]
-        public async Task<string> Ping(int delay = 10000, bool notUsed = true)
+        public async Task<string> Ping(int delay = 1000, bool notUsed = true)
         {
             logger?.LogInformation("Ping entered.");
 

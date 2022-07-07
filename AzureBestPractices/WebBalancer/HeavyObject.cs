@@ -2,6 +2,10 @@
 
 namespace Daenet.WebBalancer
 {
+
+    /// <summary>
+    /// Simulates an API that consumes a lot of RAM.
+    /// </summary>
     public class HeavyObject
     {
 
@@ -11,7 +15,8 @@ namespace Daenet.WebBalancer
         {
             this.id = id;
 
-            //AllocateMemory(1);
+            // Grows the object size to 1GB.
+           AllocateMemory(1);
         }
 
         #region RAM Allocation
@@ -36,6 +41,8 @@ namespace Daenet.WebBalancer
 
                 sz2 = ((double)Process.GetCurrentProcess().PrivateMemorySize64 / 1024 / 1024 / 1024);
             }
+
+            Debug.WriteLine("Allocation..");
         }
         #endregion
 

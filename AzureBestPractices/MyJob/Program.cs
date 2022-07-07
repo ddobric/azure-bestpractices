@@ -19,32 +19,30 @@ namespace Daenet.AzureBestPractices.MyJob
              .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
              .AddCommandLine(args);
 
-            for (int i = 0; i < 120; i++)
+            for (int i = 0; i < 1200; i++)
             {
-                Console.WriteLine($"{n++}");
+                Console.Write($"{n++} \t");
 
-                AllocateMemory();
+                AllocateMemory(32);
 
                 TraceUsage();
 
-                Thread.Sleep(1000);
+                Thread.Sleep(250);
             }            
         }
 
         private static void TraceUsage()
         {
-
-
             Console.WriteLine($"PrivateMemorySize64:\t{((double)Process.GetCurrentProcess().PrivateMemorySize64 /1024 / 1024/1024).ToString("#.##")}");
         }
 
         private static List<string> list = new List<string>();
 
-        private static void AllocateMemory()
+        private static void AllocateMemory(int targetSize=2)
         {
             var proc = Process.GetCurrentProcess();
             var sz = ((double)proc.PrivateMemorySize64 / 1024 / 1024 / 1024);
-            if (sz < 2)
+            if (sz < targetSize)
             {
                 for (int i = 0; i < 10000000; i++)
                 {

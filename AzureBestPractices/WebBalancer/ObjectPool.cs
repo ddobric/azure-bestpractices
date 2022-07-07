@@ -53,7 +53,7 @@
         {
             isBusy = false;
 
-            int retries = 700;
+            int retries = 1;
 
             THeavyObject objectInstance = null;
 
