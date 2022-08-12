@@ -24,13 +24,13 @@ namespace Daenet.WebBalancer
 
         private static void AllocateMemory(int maxSizeInGb)
         {
-            var sz1 = ((double)Process.GetCurrentProcess().PrivateMemorySize64 / 1024 / 1024 / 1024);
+            var startSize = ((double)Process.GetCurrentProcess().PrivateMemorySize64 / 1024 / 1024 / 1024);
 
-            double sz2 = sz1;
+            double endSize = startSize;
 
             int cnt = 0;
 
-            while ((sz2 - sz1) < maxSizeInGb)
+            while ((endSize - startSize) < maxSizeInGb)
             {
                 for (int i = 0; i < 10000000; i++)
                 {
@@ -39,7 +39,7 @@ namespace Daenet.WebBalancer
                         Thread.Sleep(100);
                 }
 
-                sz2 = ((double)Process.GetCurrentProcess().PrivateMemorySize64 / 1024 / 1024 / 1024);
+                endSize = ((double)Process.GetCurrentProcess().PrivateMemorySize64 / 1024 / 1024 / 1024);
             }
 
             Debug.WriteLine("Allocation..");
