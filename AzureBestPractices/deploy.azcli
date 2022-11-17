@@ -10,7 +10,7 @@ $rg="RG-AZBEST-PRACTICES"
 # Can use JMESPath expressions to llokup the location
 # https://docs.microsoft.com/en-us/cli/azure/query-azure-cli?tabs=concepts%2Cbash
 
-# If you do not remember the location name as I never re,member, try this:
+# If you do not remember the location name as I never remember, try this:
 # az account list-locations -o table --query "[? contains(name,'ger')]"
 $location="germanywestcentral"
 
