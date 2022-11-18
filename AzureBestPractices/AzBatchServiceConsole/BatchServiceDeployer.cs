@@ -3,6 +3,7 @@ using Microsoft.Azure.Batch.Auth;
 using Microsoft.Azure.Batch.Common;
 using Microsoft.Azure.Batch.FileStaging;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -12,6 +13,7 @@ using System.Text;
 
 namespace Daenet.AzureBestPractices
 {
+
     /// <summary>
     /// Instace that starts create pool if needed and deploys task to the Azure Batch service
     /// </summary>
@@ -37,7 +39,7 @@ namespace Daenet.AzureBestPractices
         #endregion
 
         #region Public methods
-       
+
 
         /// <summary>
         /// This is the generall RunAsync API that can start batch job with general executable file
@@ -58,7 +60,7 @@ namespace Daenet.AzureBestPractices
                 throw new FileNotFoundException($"Cannot find the Executable file in {this.cfg.ExecutableFile} for training job.");
             }
 
-            using (BatchClient batchClient = GetBatchClient())
+            using (BatchClient batchClient = await GetBatchClientAsync())
             {
 
                 // Track the containers which are created as part of job submission so that we can clean them up later.
@@ -74,7 +76,6 @@ namespace Daenet.AzureBestPractices
                     //Configuration for mounted Azure file share
                     AzureFileShareConfiguration afsCfg = new AzureFileShareConfiguration(this.cfg.MountSettings.AcountName, this.cfg.MountSettings.AzureFileShareURL, this.cfg.MountSettings.RelativeMountPath, this.cfg.MountSettings.AccountKey);
 
-
                     LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, $"Mounting the drive:{this.cfg.MountSettings.AzureFileShareURL} to relative path: {this.cfg.MountSettings.RelativeMountPath}.", progressCallback);
 
                     // Allocate a pool
@@ -86,6 +87,10 @@ namespace Daenet.AzureBestPractices
                     blobContainerNames = await SubmitJobAsync(batchClient, cloudStorageAccount, jobId, cmdArgs, progressCallback);
 
                     LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, $"Training job for model with id {jobId} is deployed. Please wait for the BatchService to start training", progressCallback);
+
+                    // Print out the status of the pools/jobs under this account
+                    //await PrintJobsAsync(batchClient);
+                    //await PrintPoolsAsync(batchClient);                    
 
                     if (waitToComplete)
                     {
@@ -131,58 +136,6 @@ namespace Daenet.AzureBestPractices
         }
 
         /// <summary>
-        /// Gets the status of the job.
-        /// </summary>
-        /// <param name="batchClient"></param>
-        /// <param name="jobId">The job for which the result/status has to be retrieved.</param>
-        /// <returns></returns>
-        public async Task<AzBatchLog> GetJobStatus(string jobId)
-        {
-            using (BatchClient batchClient = GetBatchClient())
-            {
-                var poolStatus = await CheckPoolIfExist(cfg.PoolSettings.PoolId);
-                if (!poolStatus.Exist)
-                {
-                    return new AzBatchLog
-                    {
-                        ErrorOutput = $"Pool {cfg.PoolSettings.PoolId} does not exist to get status for Error",
-                        StandardOutput = $"Pool {cfg.PoolSettings.PoolId} does not exist to get status for Training"
-                    };
-                }
-                else if (poolStatus.State == AllocationState.Resizing)
-                {
-                    return new AzBatchLog
-                    {
-                        ErrorOutput = $"Pool {cfg.PoolSettings.PoolId} is resizing, cannot get status for Error.",
-                        StandardOutput = $"Pool {cfg.PoolSettings.PoolId} is resizing, cannot get status for Training."
-                    };
-                }
-
-                var result = new AzBatchLog();
-
-                StringBuilder sb = new StringBuilder();
-
-                var allJobs = batchClient.JobOperations.ListJobs().Where(job => job.Id.Contains(jobId));
-
-                if (allJobs.Count() == 0)
-                    return new AzBatchLog
-                    {
-                        ErrorOutput = $"Job {jobId} does not exsit, cannot get status for Error.",
-                        StandardOutput = $"Job {jobId} does not exsit, cannot get status for Training."
-                    };
-
-                foreach (var job in allJobs)
-                {
-                    await GetLogMessageWithJobIdAsync(jobId, batchClient, result, sb).ConfigureAwait(false);
-                }
-
-                LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, sb.ToString());
-
-                return result;
-            }
-        }
-
-        /// <summary>
         /// Deletes the pool from Batch service
         /// </summary>
         /// <param name="poolId">The pool id to delete.</param>
@@ -190,7 +143,7 @@ namespace Daenet.AzureBestPractices
         public async Task DeleteBatchPoolAsync(string poolId)
         {
             await DeleteBlobContainers();
-            using (BatchClient batchClient = GetBatchClient())
+            using (BatchClient batchClient = await GetBatchClientAsync())
             {
                 LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, $"Deleting pool: {poolId}");
                 await batchClient.PoolOperations.DeletePoolAsync(poolId).ConfigureAwait(continueOnCapturedContext: false);
@@ -205,7 +158,7 @@ namespace Daenet.AzureBestPractices
         /// <returns>An asynchronous <see cref="Task"/> representing the operation.</returns>
         public async Task DeleteBatchJobAsync(string jobId)
         {
-            using (BatchClient batchClient = GetBatchClient())
+            using (BatchClient batchClient = await GetBatchClientAsync())
             {
                 LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, $"Deleting training job for model Id: {jobId}");
                 await batchClient.JobOperations.DeleteJobAsync(jobId).ConfigureAwait(continueOnCapturedContext: false);
@@ -243,7 +196,7 @@ namespace Daenet.AzureBestPractices
         /// <returns>An asynchronous <see cref="Task"/> representing the operation.</returns>
         public async Task CancelBatchJobAsync(string jobId)
         {
-            using (BatchClient batchClient = GetBatchClient())
+            using (BatchClient batchClient = await GetBatchClientAsync())
             {
                 LogMessage(Microsoft.Extensions.Logging.LogLevel.Information, $"Canceling training job for model Id: {jobId}");
                 await batchClient.JobOperations.TerminateJobAsync(jobId).ConfigureAwait(continueOnCapturedContext: false);
@@ -260,7 +213,7 @@ namespace Daenet.AzureBestPractices
             try
             {
                 var poolId = cfg.PoolSettings.PoolId;
-                using (BatchClient batchClient = GetBatchClient())
+                using (BatchClient batchClient = await GetBatchClientAsync())
                 {
                     var poolStatus = await CheckPoolIfExist(poolId);
                     if (!poolStatus.Exist)
@@ -339,7 +292,7 @@ namespace Daenet.AzureBestPractices
         {
             try
             {
-                using (BatchClient batchClient = GetBatchClient())
+                using (BatchClient batchClient = await GetBatchClientAsync())
                 {
                     var pool = await batchClient.PoolOperations.GetPoolAsync(poolId);
 
@@ -353,56 +306,6 @@ namespace Daenet.AzureBestPractices
                 logger?.LogInformation($"Pool {poolId} does not exist");
                 return (false, null);
             }
-        }
-
-        /// <summary>
-        /// Get the detail of all stderr.txt and stdout.txt files with provided job Id
-        /// </summary>
-        /// <param name="jobId">Job name</param>
-        /// <param name="batchClient">Client of batch</param>
-        /// <param name="result">Log detail</param>
-        /// <param name="sb">StringBuilder for logger to print</param>
-        /// <returns></returns>
-        private async Task GetLogMessageWithJobIdAsync(string jobId, BatchClient batchClient, AzBatchLog result, StringBuilder sb)
-        {
-            // Wait for the job to complete
-            List<CloudTask> tasks = await batchClient.JobOperations.ListTasks(jobId).ToListAsync();
-
-            // We use the task state monitor to monitor the state of our tasks -- in this case we will wait for them all to complete.
-            TaskStateMonitor taskStateMonitor = batchClient.Utilities.CreateTaskStateMonitor();
-
-            // Wait until the tasks are in completed state.
-            List<CloudTask> ourTasks = tasks.ToList();
-
-            foreach (CloudTask t in ourTasks)
-            {
-                await GetLogMessageFromCloudTaskAsync(result, sb, t).ConfigureAwait(false);
-            }
-
-        }
-
-        /// <summary>
-        /// Get detail of stderr.txt and stdout.txt of task in job
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="sb"></param>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        private async Task GetLogMessageFromCloudTaskAsync(AzBatchLog result, StringBuilder sb, CloudTask t)
-        {
-            sb.AppendLine($"Task {t.Id}");
-
-            //Read the standard out of the task
-            NodeFile standardOutFile = await t.GetNodeFileAsync(Microsoft.Azure.Batch.Constants.StandardOutFileName).ConfigureAwait(continueOnCapturedContext: false);
-            string standardOut = await standardOutFile.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
-            result.StandardOutput = standardOut;
-
-            //Read the standard error of the task
-            NodeFile standardErrorFile = await t.GetNodeFileAsync(Microsoft.Azure.Batch.Constants.StandardErrorFileName).ConfigureAwait(continueOnCapturedContext: false);
-            string standardError = await standardErrorFile.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
-            result.ErrorOutput = standardError;
-
-            sb.AppendLine();
         }
 
 
@@ -542,6 +445,7 @@ namespace Daenet.AzureBestPractices
         /// <summary>
         /// Creates a pool if it doesn't already exist.  If the pool already exists, this method resizes it to meet the expected
         /// targets specified in settings.
+        /// https://cloudspoint.xyz/create-pool-compute-nodes-run-azure-webhosting/
         /// </summary>
         /// <param name="batchClient">The BatchClient to create the pool with.</param>
         /// <param name="pool">The pool to create.</param>
@@ -617,6 +521,58 @@ namespace Daenet.AzureBestPractices
         /// <returns>An asynchronous <see cref="Task"/> representing the operation.</returns>
         private async Task CreatePoolIfNotExistAsync(BatchClient batchClient, CloudStorageAccount cloudStorageAccount, AzureFileShareConfiguration afsCfg, Action<string>? progressCallback = null)
         {
+            //ImageReference imageReference = new ImageReference(
+            //   publisher: this.cfg.PoolSettings.Publisher,//"MicrosoftWindowsServer",
+            //   offer: this.cfg.PoolSettings.Offer,//"WindowsServer",
+            //   sku: this.cfg.PoolSettings.Sku, //"2012-R2-Datacenter-smalldisk",
+            //   version: this.cfg.PoolSettings.Version);
+
+
+            //"/subscriptions/0392ebea-55e0-4526-b483-ff123f899393/resourceGroups/RG-VCD-TEST/providers/Microsoft.Compute/galleries/VMImageGallery/images/vcd-pool-vm/versions/0.0.2"
+            var imageReference = new ImageReference(this.cfg.PoolSettings.ImageReferenceId);
+
+            // You can learn more about os families and versions at:
+            // https://azure.microsoft.com/en-us/documentation/articles/cloud-services-guestos-update-matrix/
+            CloudPool pool = batchClient.PoolOperations.CreatePool(
+                poolId: this.cfg.PoolSettings.PoolId,
+                targetDedicatedComputeNodes: this.cfg.PoolSettings.PoolTargetNodeCount,
+                targetLowPriorityComputeNodes: 1,
+                virtualMachineSize: this.cfg.PoolSettings.PoolNodeVirtualMachineSize,
+                virtualMachineConfiguration: new VirtualMachineConfiguration(imageReference, this.cfg.PoolSettings.NodeAgendSkuId));
+
+            //
+            // Mounting vDrive to the the pool
+            pool.MountConfiguration = new List<MountConfiguration> { new MountConfiguration(afsCfg) };
+
+            //
+            // Setting the number of tasks that can be executed in parallel in one node
+            pool.TaskSlotsPerNode = this.cfg.PoolSettings.TasksPerNode;
+
+            // Create a new start task to facilitate pool-wide file management or installation.
+            // In this case, we just add a single dummy data file to the StartTask.
+            //List<string?> files = new List<string?> { this.cfg.ExecutableFile };
+
+            //List<ResourceFile> resourceFiles = await UploadResourcesAndCreateResourceFileReferencesAsync(cloudStorageAccount, this.cfg.PoolSettings.BlobContainer, files, progressCallback);
+
+            pool.StartTask = new StartTask()
+            {
+                //CommandLine = @"cmd /c ""net use L: \\herthboss.file.core.windows.net\vcdtest /u:herthboss FphBnBHjZajG/acOk7JWQGUaAFX2EhSX8P9bWC4jTRpl/EpkhcNLhb4aGJHQjPnW9+6yypjy6NlViSl74lUdkg== /persistent:yes""",
+                CommandLine = @"cmd /c ""wmic logicaldisk get caption""",
+                //ResourceFiles = resourceFiles
+            };
+
+            await CreatePoolIfNotExistAsync(batchClient, pool, progressCallback);
+        }
+
+        /// <summary>
+        /// Creates a pool if it doesn't already exist.  If the pool already exists, this method resizes it to meet the expected
+        /// targets specified in settings.
+        /// </summary>
+        /// <param name="batchClient">The BatchClient to use when interacting with the Batch service.</param>
+        /// <param name="cloudStorageAccount">The CloudStorageAccount to upload start task required files to.</param>
+        /// <returns>An asynchronous <see cref="Task"/> representing the operation.</returns>
+      /*  private async Task CreatePoolIfNotExistOLDAsync(BatchClient batchClient, CloudStorageAccount cloudStorageAccount, AzureFileShareConfiguration afsCfg, Action<string>? progressCallback = null)
+        {
             // You can learn more about os families and versions at:
             // https://azure.microsoft.com/en-us/documentation/articles/cloud-services-guestos-update-matrix/
             CloudPool pool = batchClient.PoolOperations.CreatePool(
@@ -642,15 +598,13 @@ namespace Daenet.AzureBestPractices
 
             pool.StartTask = new StartTask()
             {
-                
+                //CommandLine = @"cmd /c ""net use L: \\herthboss.file.core.windows.net\vcdtest /u:herthboss FphBnBHjZajG/acOk7JWQGUaAFX2EhSX8P9bWC4jTRpl/EpkhcNLhb4aGJHQjPnW9+6yypjy6NlViSl74lUdkg== /persistent:yes""",
                 CommandLine = @"cmd /c ""wmic logicaldisk get caption""",
                 //ResourceFiles = resourceFiles
             };
 
             await CreatePoolIfNotExistAsync(batchClient, pool, progressCallback);
-        }
-
-
+        }*/
 
         /// <summary>
         /// Extracts the name of the container from the file staging artifacts.
@@ -925,20 +879,35 @@ namespace Daenet.AzureBestPractices
             }
         }
 
-     
 
         /// <summary>
         /// Create a client object to access to the bacht
         /// </summary>
         /// <returns></returns>
-        private BatchClient GetBatchClient()
+        private async Task<BatchClient> GetBatchClientAsync()
         {
             // Set up the Batch Service credentials used to authenticate with the Batch Service.
-            BatchSharedKeyCredentials credentials = new BatchSharedKeyCredentials(this.cfg.AccountSettings.BatchServiceUrl, this.cfg.AccountSettings.BatchAccountName, this.cfg.AccountSettings.BatchAccountKey);
+            // Not supported when deploying VM Images.
+            // BatchSharedKeyCredentials credentials = new BatchSharedKeyCredentials(this.cfg.AccountSettings.BatchServiceUrl, this.cfg.AccountSettings.BatchAccountName, this.cfg.AccountSettings.BatchAccountKey);
+
+            BatchTokenCredentials credentials = new BatchTokenCredentials(this.cfg.AccountSettings.BatchServiceUrl, await GetAuthenticationTokenAsync());
+
             BatchClient batchClient = BatchClient.Open(credentials);
 
             return batchClient;
         }
+
+        private const string BatchResourceUri = "https://batch.core.windows.net/";
+
+
+        private async Task<string> GetAuthenticationTokenAsync()
+        {
+            AuthenticationContext authContext = new AuthenticationContext(cfg.AuthorityUri);
+            AuthenticationResult authResult = await authContext.AcquireTokenAsync(BatchResourceUri, new ClientCredential(cfg.ClientId, this.cfg.ClientKey));
+
+            return authResult.AccessToken;
+        }
+
         #endregion
 
     }

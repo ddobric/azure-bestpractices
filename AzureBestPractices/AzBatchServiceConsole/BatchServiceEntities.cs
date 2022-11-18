@@ -7,24 +7,30 @@ using System.Threading.Tasks;
 namespace Daenet.AzureBestPractices
 {
     /// <summary>
-    /// Configuration for deploying to batch service.
+    /// Configuration for deploying to batch service
     /// </summary>
     public class DeployerConfig
     {
         /// <summary>
-        /// Defines the pool to be created.
+        /// Authority Endpoint used to create the token.
         /// </summary>
-        public PoolSettings? PoolSettings { get; set; }
+        public string AuthorityUri { get; set; }
 
         /// <summary>
-        /// All required account settings.
+        /// ClientId of the service principal.
         /// </summary>
-        public AccountSettings? AccountSettings { get; set; }
+        public string ClientId { get; set; }
 
         /// <summary>
-        /// Mount drive settings.
+        /// The secret of the service principal.
         /// </summary>
-        public MountSettings? MountSettings { get; set; }
+        public string ClientKey { get; set; }
+
+        public VmImagePoolSettings PoolSettings { get; set; }
+
+        public AccountSettings AccountSettings { get; set; }
+
+        public MountSettings MountSettings { get; set; }
 
         /// <summary>
         /// The full path of the executable that will be executed as a batch job.
@@ -63,10 +69,7 @@ namespace Daenet.AzureBestPractices
         public string? AccountKey { get; set; }
     }
 
-    /// <summary>
-    /// Azure Batch Service Pool settings.
-    /// </summary>
-    public class PoolSettings
+    public class PoolSettingsBase
     {
         /// <summary>
         /// Name of the pool
@@ -74,26 +77,14 @@ namespace Daenet.AzureBestPractices
         public string PoolId { get; set; }
 
         /// <summary>
-        /// Number of nodes to be created
+        /// Number of node to be created
         /// </summary>
         public int PoolTargetNodeCount { get; set; }
 
         /// <summary>
         /// Number of tasks that can run concurrently on a single compute node
         /// </summary>
-        public int TasksPerNode { get; set; } = 1;
-
-        /// <summary>
-        /// The number that represents the OS family to be used in the  pool
-        /// See https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.batch.protocol.models.cloudserviceconfiguration.osfamily?view=azure-dotnet
-        /// </summary>
-        public string? PoolOsFamily { get; set; }
-
-        /// <summary>
-        /// Name of virtual machine with proper CPU and RAM size  
-        /// See https://azure.microsoft.com/en-us/pricing/details/batch/windows-virtual-machines/
-        /// </summary>
-        public string? PoolNodeVirtualMachineSize { get; set; }
+        public int TasksPerNode { get; set; }
 
         /// <summary>
         /// Indicate whether to delete the pool after running or not
@@ -109,6 +100,49 @@ namespace Daenet.AzureBestPractices
         /// Blob container that store pool file
         /// </summary>
         public string? BlobContainer { get; set; }
+    }
+
+    /// <summary>
+    /// Pool settings for VM-Image based Pool.
+    /// </summary>
+    public class VmImagePoolSettings : PoolSettingsBase
+    {
+        public string Publisher { get; internal set; }
+
+        public string Offer { get; internal set; }
+
+        public string Sku { get; internal set; }
+
+        public string Version { get; internal set; }
+
+        /// <summary>
+        /// Name of virtual machine with proper CPU and RAM size  
+        /// See https://azure.microsoft.com/en-us/pricing/details/batch/windows-virtual-machines/
+        /// </summary>
+        public string? PoolNodeVirtualMachineSize { get; set; }
+
+        /// <summary>
+        /// Example: "batch.node.windows amd64"
+        /// </summary>
+        public string NodeAgendSkuId { get; set; }
+
+        /// <summary>
+        /// Resource Id of VM image on image gallery 
+        /// </summary>
+        public string ImageReferenceId { get; set; }
+    }
+
+    /// <summary>
+    /// Pool settings for deprected Cloud Services Pool.
+    /// </summary>
+    public class CloudServicesPoolSettings : PoolSettingsBase
+    {
+
+        /// <summary>
+        /// The number that represents the OS to be used in the  pool
+        /// See https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.batch.protocol.models.cloudserviceconfiguration.osfamily?view=azure-dotnet
+        /// </summary>
+        public string? PoolOsFamily { get; set; }
 
     }
 
@@ -145,12 +179,6 @@ namespace Daenet.AzureBestPractices
         /// URL to connect ot batch service
         /// </summary>
         public string? BatchServiceUrl { get; set; }
-    }
-
-    public class AzBatchLog
-    {
-        public string? StandardOutput { get; set; }
-        public string? ErrorOutput { get; set; }
     }
 
     /// <summary>
